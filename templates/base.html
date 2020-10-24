@@ -16,6 +16,17 @@
       <li><a href="{{ url_for('auth.login') }}">Log In</a>
     {% endif %}
 </nav>
+  
+ <form method = "get" action = "{{url_for('blog.search_posts')}}">
+    <input type ="search" id="keyword" name="keyword">
+    <select id="category" name="category">
+      <option value="title" name="title">Title</option>
+      <option value="body" name="title">Body</option>
+    </select>
+    <input type ="submit" value = "Search">
+
+ </form>
+
 
 <section class="content">
   <header>
