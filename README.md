@@ -1,2 +1,4 @@
 # WPostBoard
-Forum thing in development
+Forum thing in development. Built with Flask.
+
+
