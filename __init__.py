@@ -38,6 +38,7 @@ def create_app(test_config=None):
     from flaskr2 import profile
     app.register_blueprint(profile.bp)
     app.add_url_rule("/", endpoint="profile")
+    print(app.jinja_env.context_class)
 
     return app
 
