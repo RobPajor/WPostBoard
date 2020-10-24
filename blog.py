@@ -10,6 +10,7 @@ bp = Blueprint("blog", __name__)
 
 @bp.route("/")
 def index():
+
     db = get_db()
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username, likes"
@@ -197,6 +198,42 @@ def check_if_disliked(postid, userid):
     db = get_db()
     result = db.execute("SELECT * from dislikes where post_id=? AND user_id=?", (postid, userid)).fetchone()
     return result
+
+
+
+# ----------- SEARCH FEATURE -----------
+
+@bp.route("/search/", methods=("GET", "POST"))
+def search_posts():
+    
+    searchterm = request.args.get("keyword")
+    print(searchterm)
+    category = request.args.get("category")
+    print(category)
+    db = get_db()
+    
+    if category == "body":
+        posts = db.execute("SELECT p.id, title, body, created, author_id, username, likes"
+        " FROM post p JOIN user u ON p.author_id = u.id"
+        " WHERE body LIKE ?"
+        " ORDER BY created DESC",("%" + searchterm + "%",)).fetchall()
+        print(posts)
+    
+
+    if category == "title":
+        posts = db.execute("SELECT p.id, title, body, created, author_id, username, likes"
+        " FROM post p JOIN user u ON p.author_id = u.id"
+        " WHERE title LIKE ?"
+        " ORDER BY created DESC",("%" + searchterm + "%",)).fetchall()
+        
+
+    if category == "user":
+        posts = db.execute("SELECT * from post WHERE title LIKE ?", ("%" + searchterm + "%",)).fetchall()
+        
+    
+    for x in posts: (print(x["id"]))
+    return render_template("blog/search.html", posts=posts, amount=len(posts))
+
 
 
 
