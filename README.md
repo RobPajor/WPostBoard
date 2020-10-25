@@ -11,4 +11,4 @@ step 2.
 make virtual environment
 
 step 3.
-set flask_app=flaskr2
+set flask_app=this folder
