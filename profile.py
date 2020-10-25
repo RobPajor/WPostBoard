@@ -20,7 +20,18 @@ def profile(userid):
     posts = get_user_posts(userid)
     print(user["joindate"])
 
-    return render_template("profile/main.html", user=user, posts=posts)
+    db = get_db()
+    avatar_id = db.execute(" SELECT avatar_id FROM user where id = ?", (userid,)).fetchone()
+    print(avatar_id)
+    print(avatar_id[0])
+
+    if avatar_id[0] == 0:
+        return render_template("profile/main.html", user=user, posts=posts, filename="default.jpg")
+    
+    filename = get_user_avatar(userid)
+    print(send_from_directory(current_app.config['UPLOAD_PATH'], filename))
+
+    return render_template("profile/main.html", user=user, posts=posts, filename=filename)
 
 
 @bp.route("/<int:userid>/bio/update", methods=("GET","POST"))
@@ -66,7 +77,18 @@ def get_user_posts(userid):
     return posts
 
 def get_user_avatar(userid):
-    pass
+    db = get_db()
+    avatar_id = db.execute("SELECT avatar_id FROM user where id = ?", (userid,)).fetchone()[0]
+    filename = db.execute("SELECT picture_path FROM pictures where picture_id = ? ", (avatar_id,)).fetchone()[0]
+    return filename
+
+
+def set_user_avatar(filename, userid):
+    db = get_db()
+    avatar_id = db.execute("SELECT picture_id FROM pictures where picture_path = (?)", (filename,)).fetchone()
+    avatar_id = avatar_id[0]
+    db.execute("UPDATE User SET avatar_id = ? WHERE id = ?", (avatar_id, userid,))
+    db.commit()
 
 @bp.route("/<int:userid>/avatar/update", methods=["GET","POST"])
 @login_required
@@ -92,6 +114,7 @@ def change_avatar(userid):
             picture_path = "http://127.0.0.1:5000/uploads/" + filename
             file.save(os.path.join(current_app.config['UPLOAD_PATH'], filename))
             db.execute("INSERT INTO pictures (picture_path) VALUES (?);", (filename,))
+            set_user_avatar(filename, userid)
             db.commit()
             return redirect(url_for("profile.profile", userid=userid, filename=filename))
 
