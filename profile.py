@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app, send_from_directory
     )
 from werkzeug.exceptions import abort
 import os
@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from flaskr.auth import login_required
 from flaskr.db import get_db
 
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg',}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', "png"}
 
 bp = Blueprint("profile", __name__,url_prefix="/profile")
 
@@ -72,6 +72,7 @@ def get_user_avatar(userid):
 @login_required
 def change_avatar(userid):
     
+    db = get_db()
     user = get_user(userid)
     allowed_file("hi")
 
@@ -88,9 +89,11 @@ def change_avatar(userid):
 
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            print(filename)
+            picture_path = "http://127.0.0.1:5000/uploads/" + filename
             file.save(os.path.join(current_app.config['UPLOAD_PATH'], filename))
-            return redirect(url_for("profile.profile", userid=userid))
+            db.execute("INSERT INTO pictures (picture_path) VALUES (?);", (filename,))
+            db.commit()
+            return redirect(url_for("profile.profile", userid=userid, filename=filename))
 
     return render_template("profile/change_avatar.html", user=user)
 
@@ -98,4 +101,8 @@ def allowed_file(filename):
     return "." in filename and \
         filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-print("asdasdasda")
+
+@bp.route('/uploads/<filename>')
+def send_file(filename):
+    print("file: ", send_from_directory(current_app.config['UPLOAD_PATH'], filename))
+    return send_from_directory(current_app.config['UPLOAD_PATH'], filename)
