@@ -45,7 +45,3 @@ def create_app(test_config=None):
     print(app.jinja_env.context_class)
 
     return app
-
-print("hi")
-print("sup")
-print("asde")
